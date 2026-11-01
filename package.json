@@ -1,11 +1,13 @@
 {
   "name": "todo-list",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "To-do list with counters, search, filters, editing and a dark theme",
   "scripts": {
     "clean": "rimraf dist",
-    "start": "parcel index.html --open --no-cache"
+    "start": "parcel index.html --open --no-cache",
+    "build": "rimraf dist && parcel build index.html --public-url ./ --no-source-maps --no-cache",
+    "typecheck": "tsc",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +16,8 @@
     "@parcel/transformer-sass": "^2.7.0",
     "parcel": "^2.7.0",
     "rimraf": "^3.0.2",
-    "sass": "^1.55.0"
+    "sass": "^1.55.0",
+    "typescript": "~5.6",
+    "vitest": "^2.1.9"
   }
 }
