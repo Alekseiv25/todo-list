@@ -9,6 +9,8 @@ Runs entirely in the browser; data lives in `localStorage`. No backend, no netwo
 - The `localStorage` key `TODO-LIST` and its item shape `{id, text, checked, date}` are a compatibility
   contract with lists saved by earlier versions. Change them only with a migration in `TodoStore.load`.
 - `dist/` is committed on purpose (static hosting). Regenerate it with `npm run build`, never by hand.
+  GitHub Pages does not serve this copy: `.github/workflows/pages.yml` rebuilds `dist/` from source on
+  every push to `main` and deploys that (repo setting: Settings → Pages → Source: GitHub Actions).
 
 ## Commands
 | What | Command |
@@ -33,6 +35,7 @@ Runs entirely in the browser; data lives in `localStorage`. No backend, no netwo
 | `src/ts/main.ts` | Entry point |
 | `src/styles/main.scss` | Styles; theme colours are CSS variables switched by `html[data-theme]` |
 | `dist/` | Built site (generated) |
+| `.github/workflows/pages.yml` | GitHub Pages deploy: quick gate, build, publish `dist/` |
 
 ## Landmines
 - npm 12 blocks dependency install scripts by default; Parcel and Vitest work without them here. If a

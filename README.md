@@ -10,4 +10,6 @@ npm test         # unit tests
 npm run build    # rebuild dist/ for static hosting
 ```
 
+The site is published to GitHub Pages by `.github/workflows/pages.yml` on every push to `main`.
+
 Contributor and agent notes: [CLAUDE.md](CLAUDE.md).
