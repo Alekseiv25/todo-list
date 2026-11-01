@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Agent/automation entry point. Developers can keep using `npm start` / `npm test` directly.
+#   ./dc up            start the dev server in the background on ${PORT:-1234}
+#   ./dc down          stop it
+#   ./dc check quick   type-check + unit tests
+#   ./dc check full    quick + production build (into a temp dir; dist/ is untouched)
+set -euo pipefail
+cd "$(dirname "$0")"
+[ -f .env ] && { set -a; . ./.env; set +a; }
+PORT="${PORT:-1234}"
+STATE=.dc
+mkdir -p "$STATE"
+
+ensure_deps() { [ -d node_modules ] || npm ci --no-audit --no-fund; }
+
+case "${1:-}" in
+  up)
+    ensure_deps
+    if [ -f "$STATE/server.pid" ] && kill -0 "$(cat "$STATE/server.pid")" 2>/dev/null; then
+      echo "already running on http://localhost:$PORT"; exit 0
+    fi
+    setsid nohup node_modules/.bin/parcel serve index.html --port "$PORT" --dist-dir "$STATE/serve" --cache-dir "$STATE/cache" \
+      >"$STATE/server.log" 2>&1 &
+    echo $! >"$STATE/server.pid"
+    for _ in $(seq 60); do
+      kill -0 "$(cat "$STATE/server.pid")" 2>/dev/null || { echo "dev server exited; see $STATE/server.log" >&2; exit 1; }
+      curl -fsS "http://localhost:$PORT/" >/dev/null 2>&1 && { echo "up: http://localhost:$PORT"; exit 0; }
+      sleep 1
+    done
+    echo "dev server did not answer on :$PORT; see $STATE/server.log" >&2; exit 1
+    ;;
+  down)
+    if [ -f "$STATE/server.pid" ]; then
+      pid="$(cat "$STATE/server.pid")"
+      kill -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
+      rm -f "$STATE/server.pid"
+    fi
+    echo down
+    ;;
+  check)
+    ensure_deps
+    tier="${2:-quick}"
+    case "$tier" in quick|full) ;; *) echo "usage: ./dc check quick|full" >&2; exit 2 ;; esac
+    npm run --silent typecheck
+    npm test --silent
+    if [ "$tier" = full ]; then
+      node_modules/.bin/parcel build index.html --public-url ./ --no-source-maps --dist-dir "$STATE/build" --cache-dir "$STATE/cache"
+    fi
+    echo "GATE $tier: PASS"
+    ;;
+  *)
+    sed -n '2,6p' "$0"; exit 2 ;;
+esac
